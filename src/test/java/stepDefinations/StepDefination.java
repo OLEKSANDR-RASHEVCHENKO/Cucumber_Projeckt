@@ -9,6 +9,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
+import resources.ApiResources;
 import resources.TestDataBuild;
 import resources.Untils;
 
@@ -24,6 +25,7 @@ public class StepDefination extends Untils {
     Response response;
     TestDataBuild dataBuild = new TestDataBuild();
 
+
     public StepDefination() throws FileNotFoundException {
     }
 
@@ -32,11 +34,16 @@ public class StepDefination extends Untils {
         req =given().spec(requestSpecification()).log().all()
                 .body(dataBuild.addPlacePayload(name,language,address));
     }
-    @When("user calls {string} with Post http request")
-    public void user_calls_with_post_http_request(String string) {
+    @When("user calls {string} with {string} http request")
+    public void user_calls_with_http_request(String endpoint , String method) {
+        ApiResources endpointName=ApiResources.valueOf(endpoint);
         response1= new ResponseSpecBuilder().expectStatusCode(200).expectContentType(ContentType.JSON).build();
-        response= req.when().post("/maps/api/place/add/json")
-                .then().spec(response1).extract().response();
+        if (method.equalsIgnoreCase("Post")){
+        response= req.when().post(endpointName.getEndpoint());
+    }
+    else if (method.equalsIgnoreCase("Get")){
+            response= req.when().post(endpointName.getEndpoint());
+    }
     }
     @Then("the API call got success with status code {int}")
     public void the_api_call_got_success_with_status_code(Integer int1) {
@@ -45,15 +52,22 @@ public class StepDefination extends Untils {
     }
     @Then("{string} in response body is {string}")
     public void in_response_body_is(String keyValue, String ExpectedValue) {
-        String resp=response.asString();
-        JsonPath js = new JsonPath(resp);
-        assertEquals(js.get(keyValue).toString(),ExpectedValue);
+        assertEquals(getJsonPath(response,keyValue),ExpectedValue);
     }
     @Then("{string} in responce body is {string}")
     public void in_responce_body_is(String keyValue, String ExpectedValue) {
         String resp=response.asString();
         JsonPath js = new JsonPath(resp);
         assertEquals(js.get(keyValue).toString(),ExpectedValue);
+    }
+
+    @Then("verify place_Id created maps to {string} using {string}")
+    public void verify_place_id_created_maps_to_using(String expectedName, String endpoint) throws IOException {
+        String place_id=getJsonPath(response,"place_id");
+        req =given().spec(requestSpecification()).log().all().queryParam("place_id",place_id);
+        user_calls_with_http_request(endpoint,"Get");
+        String actualName=getJsonPath(response,"name");
+        assertEquals(actualName,expectedName);
     }
 
 }
