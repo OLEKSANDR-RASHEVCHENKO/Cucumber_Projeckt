@@ -40,6 +40,11 @@
             <artifactId>groovy</artifactId>
             <version>3.0.17</version>
         </dependency>
+        <dependency>
+            <groupId>net.masterthought</groupId>
+            <artifactId>cucumber-reporting</artifactId>
+            <version>5.0.0</version>
+        </dependency>
 
     </dependencies>
     <properties>

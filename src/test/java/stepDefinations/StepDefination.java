@@ -24,6 +24,7 @@ public class StepDefination extends Untils {
     ResponseSpecification response1;
     Response response;
     TestDataBuild dataBuild = new TestDataBuild();
+    static String place_id;
 
 
     public StepDefination() throws FileNotFoundException {
@@ -37,6 +38,8 @@ public class StepDefination extends Untils {
     @When("user calls {string} with {string} http request")
     public void user_calls_with_http_request(String endpoint , String method) {
         ApiResources endpointName=ApiResources.valueOf(endpoint);
+        System.out.println(endpointName.getEndpoint());
+
         response1= new ResponseSpecBuilder().expectStatusCode(200).expectContentType(ContentType.JSON).build();
         if (method.equalsIgnoreCase("Post")){
         response= req.when().post(endpointName.getEndpoint());
@@ -63,11 +66,17 @@ public class StepDefination extends Untils {
 
     @Then("verify place_Id created maps to {string} using {string}")
     public void verify_place_id_created_maps_to_using(String expectedName, String endpoint) throws IOException {
-        String place_id=getJsonPath(response,"place_id");
+        place_id=getJsonPath(response,"place_id");
         req =given().spec(requestSpecification()).log().all().queryParam("place_id",place_id);
         user_calls_with_http_request(endpoint,"Get");
         String actualName=getJsonPath(response,"name");
         assertEquals(actualName,expectedName);
+    }
+
+    @Given("DeletePlace Payload")
+    public void delete_place_payload() throws IOException {
+        req=given().spec(requestSpecification())
+                .body(dataBuild.deletePlacePayload(place_id));
     }
 
 }
